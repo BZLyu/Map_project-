@@ -2,6 +2,9 @@
 
 > Use Dijkstra,KDTree,Tomcat, Ajax, Servlet ,Leaflet.
 
+![image](https://github.com/BZLyu/Map_project-/blob/master/Map.png)
+
+
 # Dijkstra:
 
     public class Dijkstra {
