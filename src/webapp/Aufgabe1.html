@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aufgabe1 </title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+            integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+            crossorigin=""></script>
+    <div id="myMap"></div>
+    <style>
+    #myMap {
+    height: 500px;
+    }</style>
+</head>
+<body>
+
+<h1> Aufgabe 1</h1>
+
+<script>
+
+    var mymap = L.map('myMap').setView([48.744442, 9.106384], 13);//48.744442, 9.106384
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy <a href="https://www.mapbox.com/">Mapbox</a>'
+    }).addTo(mymap);
+
+    var marker1 = L.marker([48.744440, 9.106385]).addTo(mymap);
+    var marker2 = L.marker([48.743738, 9.117794]).addTo(mymap);//48.743738, 9.117794
+
+    var latlngs =[[48.744440, 9.106385],[48.743738, 9.117794]]
+    L.polyline(latlngs, {color: 'red'}).addTo(mymap);
+
+    var circle = L.circle([48.744442, 9.106383], {
+        color: 'blue',
+        fillColor: '#26c9ff',
+        fillOpacity: 0.5,
+        radius: 100
+    }).addTo(mymap);
+
+    marker1.bindPopup("<b>Hello world!</b><br>I am a popup1.").openPopup();
+    marker2.bindPopup("Ziel");
+    marker1.bindPopup("Start");
+
+    circle.bindPopup("I am a circle.");
+
+    var popup = L.popup()
+        .setLatLng([48.744442, 9.106384])
+        .setContent("Hier Start! ^_^ ")
+        .openOn(mymap);
+
+    mymap.on('click', onMapClick);
+
+    var myGroup=L.layerGroup([]);
+
+    function onMapClick(e) {
+        myGroup.clearLayers();
+        popup
+            .setLatLng(e.latlng)
+            .setContent("You clicked the map at " + e.latlng.toString())
+            .openOn(mymap);
+
+        var marker3 = L.marker([e.latlng.lat,e.latlng.lng]);
+        myGroup=L.layerGroup([marker3]);
+        mymap.addLayer(myGroup);
+    }
+
+
+</script>
+
+
+
+</body>
+</html>
