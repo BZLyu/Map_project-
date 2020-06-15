@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Aufgabe2 </title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+            integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+            crossorigin=""></script>
+    <div id="myMap"></div>
+
+    <style>
+        #myMap {
+            height: 900px;
+        }</style>
+
+    <button type="button" onclick="Routingplan()">Routingplan</button>
+    <button type="button" onclick="clean()">clanMap</button>
+</head>
+<body>
+
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+<script language="JavaScript"> // packet jquery
+    var mymap = L.map('myMap').setView([48.744442, 9.106384], 13);//48.744442, 9.106384
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy <a href="https://www.mapbox.com/">Mapbox</a>'
+    }).addTo(mymap);
+
+
+var popup = L.popup()
+mymap.on('click', onMapClick);
+
+var myGroup=L.layerGroup([]);
+
+var start =null;
+var end =null;
+var Line =null;
+
+var start_ID=-1;
+var end_ID=-1;
+
+        function onMapClick(e) {
+
+            myGroup.clearLayers();
+            popup
+                .setLatLng(e.latlng)
+                .setContent(e.latlng.toString()+
+                    "<br><button type='button' id=\"setstart\" > Set start</button>"
+                    +"<br><button type='button' id=\"setend\" > Set destination</button>")
+
+
+            var start_lat=e.latlng.lat;
+            var start_lon=e.latlng.lng;
+            var end_lat=e.latlng.lat;
+            var end_lon=e.latlng.lng;
+            var circle = L.circle([e.latlng.lat, e.latlng.lng], {
+                color: 'blue',
+                fillColor: '#26c9ff',
+                fillOpacity: 0.5,
+                radius: 50
+            })
+            var marker1 = L.marker([e.latlng.lat,e.latlng.lng]);
+            marker1.bindPopup(e.latlng.toString());
+            myGroup=L.layerGroup([marker1,circle]);
+            mymap.addLayer(myGroup);
+            popup.openOn(mymap);
+
+            $("#setstart").click( function setstart() {
+
+                    // startGroup.clearLayers();
+                    start_ID=-1;
+                    var url1="ServletStart";
+                    $.ajax(
+                        {url:url1,// http://localhost:8080/ServletNextpoint
+                            data:{"start_lon":start_lon,"start_lat":start_lat},
+                            type:"get",
+                            datatype:"json",
+                            traditional: true,
+                            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                            success:function(data){
+                                var arraydata1 = eval(data);
+                                start_ID = arraydata1[0];
+                                start_lat=arraydata1[1];
+                                start_lon=arraydata1[2];
+                                //alert("start_ID: "+ start_ID+", lat:"+start_lat+", lon:" +start_lon);
+                                start=L.marker([start_lat,start_lon]).addTo(mymap);
+                                start.bindPopup("Start: "+start_ID+", lat:"+start_lat+", lon:" +start_lon);
+                                myGroup.clearLayers();
+                                alert("Start point has been set.")
+
+                            },
+                            error:function () {
+                                alert("ServletNextpoint has problem.");
+                            }
+                        });
+
+                }
+            );
+
+            $("#setend").click( function setend() {
+
+                    end_ID=-1;
+                    var url2="ServletEnd";
+
+                    $.ajax(
+                        {url:url2,
+                            data:{"end_lon":end_lon,"end_lat":end_lat},
+                            type:"post",
+                            datatype:"json",
+                            traditional: true,
+                            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                            success:function(data){
+                                var arraydata2 = eval(data);
+                                end_ID = arraydata2[0];
+                                end_lat=arraydata2[1];
+                                end_lon=arraydata2[2];
+                                //alert("End_ID: "+ end_ID+", lat:"+end_lat+", lon:" +end_lon);
+                                end=L.marker([end_lat,end_lon]).addTo(mymap);
+                                end.bindPopup("Destination: "+end_ID+", lat:"+end_lat+", lon:" +end_lon);
+                                myGroup.clearLayers();
+                                alert("Destination has been set.")
+
+                            },
+                            error:function () {
+                                alert("ServletNextpoint has problem.");
+                            }
+                        });
+
+                });
+
+        }
+
+        function clean() {
+            mymap.removeLayer(start);
+            mymap.removeLayer(end);
+            mymap.removeLayer(Line);
+            start_ID=-1;
+            end_ID=-1;
+        }
+
+        function Routingplan() {
+
+            //alert("sart ID: "+ start_ID+"end ID: "+end_ID);
+            var url1="RoutenplanungServlet";
+            if(start_ID === -1){
+                alert("start point has not set.")
+                return;
+            }
+            if(end_ID === -1){
+                alert("end point has not set.")
+                return;
+            }
+            //alert("routing start.");
+
+            $.ajax({url:url1,
+                data:{"start_ID":start_ID,"ziel_ID":end_ID},
+                type:"get",
+                datatype:"json",
+                traditional: true,
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                success:function(data){
+
+                    if (data!=null){
+                        var arraydata = eval(data);
+                        var position=[]
+                        for (var i=0;i<arraydata.length;i++){
+                            var lang = position.push(arraydata[i]);
+                        }
+                        //alert(position);
+                        Line=L.polyline(position, {color: 'red'}).addTo(mymap);
+
+                        // marker1 = L.marker(position[0]).addTo(mymap);
+                        // marker2 = L.marker(position[position.length-1]).addTo(mymap);
+                        // marker1.bindPopup("start.");
+                        // marker2.bindPopup("end.");
+                        alert("routing finished.");
+                    }
+
+                    else {alert("No path available!")}},
+                error:function () {
+                    alert("Routingplan Servlet problem.");
+                }
+            });
+        }
+
+    </script>
+
+
+</body>
+</html>
